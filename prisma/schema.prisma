@@ -7,32 +7,25 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  sites        Site[]
-}
-
 model Site {
   id        String   @id @default(cuid())
-  name      String
-  url       String
+  url       String   @unique
+  hostname  String
   createdAt DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   audits    Audit[]
 }
 
 model Audit {
-    id            String   @id @default(cuid())
-    performance   Int  
-    accessibility Int
-    seo           Int
-    bestPractices Int
-    issues        Json?
-    createdAt     DateTime @default(now())
-    siteId        String   
-    site          Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  strategy      String
+  performance   Int
+  accessibility Int
+  seo           Int
+  bestPractices Int
+  issues        Json?
+  createdAt     DateTime @default(now())
+  siteId        String
+  site          Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, createdAt])
 }
