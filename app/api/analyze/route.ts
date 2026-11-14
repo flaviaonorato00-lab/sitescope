@@ -2,6 +2,8 @@ import prisma from "@/lib/prisma";
 import { runPageSpeed, type Strategy } from "@/lib/pagespeed";
 import { normalizeUrl } from "@/lib/url";
 
+export const maxDuration = 60;
+
 const CACHE_MINUTES = 60;
 
 export async function POST(request: Request) {
