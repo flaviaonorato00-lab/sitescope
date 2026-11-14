@@ -2,6 +2,8 @@ import prisma from "@/lib/prisma";
 import { runPageSpeed, type Strategy } from "@/lib/pagespeed";
 import { normalizeUrl } from "@/lib/url";
 
+const CACHE_MINUTES = 60;
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
 
@@ -21,6 +23,29 @@ export async function POST(request: Request) {
   }
 
   const { url, hostname } = result.value;
+
+  const since = new Date(Date.now() - CACHE_MINUTES * 60 * 1000);
+
+  const recentAudit = await prisma.audit.findFirst({
+    where: { strategy, createdAt: { gte: since }, site: { url } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (recentAudit) {
+    return Response.json({
+      siteId: recentAudit.siteId,
+      auditId: recentAudit.id,
+      url,
+      strategy,
+      cached: true,
+      scores: {
+        performance: recentAudit.performance,
+        accessibility: recentAudit.accessibility,
+        seo: recentAudit.seo,
+        bestPractices: recentAudit.bestPractices,
+      },
+    });
+  }
 
   const pagespeed = await runPageSpeed(url, strategy);
 
@@ -43,6 +68,7 @@ export async function POST(request: Request) {
     auditId: audit.id,
     url: site.url,
     strategy,
+    cached: false,
     scores: pagespeed.scores,
   });
 }
