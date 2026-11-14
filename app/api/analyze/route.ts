@@ -1,3 +1,4 @@
+import prisma from "@/lib/prisma";
 import { normalizeUrl } from "@/lib/url";
 
 export async function POST(request: Request) {
@@ -16,5 +17,13 @@ export async function POST(request: Request) {
     return Response.json({ error: result.error }, { status: 400 });
   }
 
-  return Response.json(result.value);
+  const { url, hostname } = result.value;
+
+  const site = await prisma.site.upsert({
+    where: { url },
+    update: {},
+    create: { url, hostname },
+  });
+
+  return Response.json({ id: site.id, url: site.url, hostname: site.hostname });
 }
