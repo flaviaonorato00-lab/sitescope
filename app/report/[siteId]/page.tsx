@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import prisma from "@/lib/prisma";
+import { getScoreStyles } from "@/lib/score-styles";
 
 type ReportPageProps = {
   params: Promise<{ siteId: string }>;
@@ -21,45 +22,54 @@ async function Report({ params }: ReportPageProps) {
 
   return (
     <>
-      <h1 className="text-3xl font-bold">{site.hostname}</h1>
+      <h1 className="text-3xl font-bold tracking-tight">{site.hostname}</h1>
       <p className="mt-2 text-zinc-600">
         {site.audits.length} {site.audits.length === 1 ? "analysis" : "analyses"} so far
       </p>
 
-      <table className="mt-8 w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 text-zinc-500">
-            <th className="py-2">Date</th>
-            <th className="py-2">Device</th>
-            <th className="py-2">Performance</th>
-            <th className="py-2">Accessibility</th>
-            <th className="py-2">SEO</th>
-            <th className="py-2">Best practices</th>
-          </tr>
-        </thead>
-        <tbody>
-          {site.audits.map((audit) => (
-            <tr key={audit.id} className="border-b border-zinc-100">
-              <td className="py-2">
-                {audit.createdAt.toLocaleString("en-GB", { timeZone: "UTC" })}
-              </td>
-              <td className="py-2 capitalize">{audit.strategy}</td>
-              <td className="py-2">{audit.performance}</td>
-              <td className="py-2">{audit.accessibility}</td>
-              <td className="py-2">{audit.seo}</td>
-              <td className="py-2">{audit.bestPractices}</td>
+      <div className="mt-8 overflow-x-auto rounded-2xl border border-zinc-200 bg-white shadow-sm">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-500">
+              <th className="px-4 py-3 font-medium">Date</th>
+              <th className="px-4 py-3 font-medium">Device</th>
+              <th className="px-4 py-3 font-medium">Performance</th>
+              <th className="px-4 py-3 font-medium">Accessibility</th>
+              <th className="px-4 py-3 font-medium">SEO</th>
+              <th className="px-4 py-3 font-medium">Best practices</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {site.audits.map((audit) => (
+              <tr key={audit.id} className="border-b border-zinc-100 last:border-0">
+                <td className="px-4 py-3">
+                  {audit.createdAt.toLocaleString("en-GB", { timeZone: "UTC" })}
+                </td>
+                <td className="px-4 py-3 capitalize">{audit.strategy}</td>
+                {[audit.performance, audit.accessibility, audit.seo, audit.bestPractices].map(
+                  (value, index) => (
+                    <td key={index} className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 font-medium ${getScoreStyles(value).badge}`}
+                      >
+                        {value}
+                      </span>
+                    </td>
+                  ),
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
 
 export default function ReportPage({ params }: ReportPageProps) {
   return (
-    <main className="mx-auto w-full max-w-5xl p-8">
-      <Link href="/" className="text-sm text-zinc-600 hover:text-black">
+    <main className="mx-auto w-full max-w-5xl px-6 py-10">
+      <Link href="/" className="text-sm font-medium text-indigo-600 hover:underline">
         ← Analyze another site
       </Link>
       <div className="mt-6">

@@ -53,59 +53,85 @@ export default function AnalyzeForm() {
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
-        <input
-          type="text"
-          value={url}
-          onChange={(event) => setUrl(event.target.value)}
-          placeholder="example.com"
-          className="flex-1 rounded-md border border-zinc-300 px-4 py-2"
-        />
-        <select
-          value={strategy}
-          onChange={(event) => setStrategy(event.target.value)}
-          className="rounded-md border border-zinc-300 px-3 py-2"
-        >
-          <option value="mobile">Mobile</option>
-          <option value="desktop">Desktop</option>
-        </select>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-black px-6 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Analyzing..." : "Analyze"}
-        </button>
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            type="text"
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            placeholder="example.com"
+            className="flex-1 rounded-xl border border-zinc-300 px-4 py-3 text-base outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {loading ? "Analyzing..." : "Analyze"}
+          </button>
+        </div>
+
+        <div className="mt-3 inline-flex rounded-lg bg-zinc-100 p-1 text-sm">
+          {["mobile", "desktop"].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setStrategy(option)}
+              className={`rounded-md px-4 py-1 capitalize transition ${
+                strategy === option
+                  ? "bg-white font-medium text-zinc-900 shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-700"
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       </form>
 
       {loading && (
-        <p className="mt-6 text-zinc-600">
-          This can take up to 15 seconds...
+        <div className="mt-8 flex items-center justify-center gap-3 text-zinc-600">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-indigo-600" />
+          <p>Analyzing the website. This can take up to 30 seconds...</p>
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-8 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          {error}
         </p>
       )}
 
-      {error && <p className="mt-6 text-red-600">{error}</p>}
-
       {result && (
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold">{result.url}</h2>
+        <section className="mt-10">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-xl font-semibold">{result.url}</h2>
+            <Link
+              href={`/report/${result.siteId}`}
+              className="text-sm font-medium text-indigo-600 hover:underline"
+            >
+              View history →
+            </Link>
+          </div>
           {result.cached && (
-            <p className="text-sm text-zinc-500">
+            <p className="mt-1 text-sm text-zinc-500">
               Recent result, analyzed less than an hour ago.
             </p>
           )}
-          <Link
-            href={`/report/${result.siteId}`}
-            className="mt-2 inline-block text-sm text-blue-600 underline"
-          >
-            View history
-          </Link>
-          <div className="mt-6 flex flex-wrap gap-8">
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
             <ScoreCircle label="Performance" value={result.scores.performance} />
             <ScoreCircle label="Accessibility" value={result.scores.accessibility} />
             <ScoreCircle label="SEO" value={result.scores.seo} />
             <ScoreCircle label="Best practices" value={result.scores.bestPractices} />
           </div>
+          <p className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-zinc-500">
+            <span><span className="text-green-600">●</span> 90-100 good</span>
+            <span><span className="text-orange-500">●</span> 50-89 needs improvement</span>
+            <span><span className="text-red-600">●</span> 0-49 poor</span>
+          </p>
         </section>
       )}
     </div>
