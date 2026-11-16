@@ -13,11 +13,6 @@ export default function Header() {
               Home
             </Link>
           </li>
-          <li>
-            <Link href="/dashboard" className="hover:text-black">
-              Dashboard
-            </Link>
-          </li>
         </ul>
       </nav>
     </header>
