@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import ScoreCircle from "@/components/ScoreCircle";
 
@@ -11,6 +12,7 @@ type Scores = {
 };
 
 type AnalyzeResult = {
+  siteId: string;
   url: string;
   cached: boolean;
   scores: Scores;
@@ -92,6 +94,12 @@ export default function AnalyzeForm() {
               Recent result, analyzed less than an hour ago.
             </p>
           )}
+          <Link
+            href={`/report/${result.siteId}`}
+            className="mt-2 inline-block text-sm text-blue-600 underline"
+          >
+            View history
+          </Link>
           <div className="mt-6 flex flex-wrap gap-8">
             <ScoreCircle label="Performance" value={result.scores.performance} />
             <ScoreCircle label="Accessibility" value={result.scores.accessibility} />
