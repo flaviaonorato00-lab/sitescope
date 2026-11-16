@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import ScoreChart from "@/components/ScoreChart";
 import prisma from "@/lib/prisma";
 
 type ReportPageProps = {
@@ -26,20 +25,6 @@ async function Report({ params }: ReportPageProps) {
       <p className="mt-2 text-zinc-600">
         {site.audits.length} {site.audits.length === 1 ? "analysis" : "analyses"} so far
       </p>
-
-      <div className="mt-8">
-        <ScoreChart
-          audits={[...site.audits].reverse().map((audit) => ({
-            id: audit.id,
-            strategy: audit.strategy,
-            createdAt: audit.createdAt.toISOString(),
-            performance: audit.performance,
-            accessibility: audit.accessibility,
-            seo: audit.seo,
-            bestPractices: audit.bestPractices,
-          }))}
-        />
-      </div>
 
       <table className="mt-8 w-full text-left text-sm">
         <thead>
