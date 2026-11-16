@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SiteScope
 
-## Getting Started
+Check the performance, accessibility, SEO and best practices of any public website. Paste an address, get Lighthouse scores in about 10 seconds. No sign-up needed.
 
-First, run the development server:
+**Live demo:** [sitescope-zeta.vercel.app](https://sitescope-zeta.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+![SiteScope screenshot](docs/screenshot.png)
+
+## Features
+
+- Analyze any public website on **mobile** or **desktop** using the Google PageSpeed Insights API
+- Four scores (performance, accessibility, SEO, best practices) with green / orange / red colors
+- Every analysis is saved, and each site has a history page with all its past results
+- Results from the last hour are reused (cache), so repeated requests are instant and do not use the API quota
+- No login: anyone can use it
+
+## Tech stack
+
+- **Next.js 16** (App Router, Route Handlers) and **React 19**
+- **TypeScript**
+- **Tailwind CSS 4**
+- **PostgreSQL** (Neon) with **Prisma 7**
+- **Vitest** for unit tests
+- Deployed on **Vercel**
+
+## How it works
+
+```
+Form (React)  →  POST /api/analyze  →  validate URL  →  recent result in database?
+                                                          ├─ yes → return it (cached)
+                                                          └─ no  → Google PageSpeed API → save → return scores
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `lib/url.ts` cleans the address (adds `https://`, removes `www.`, trailing slashes and tracking parameters) and **rejects** local and private addresses (`localhost`, `192.168.x.x`, `.local`, ...) so the server cannot be used to reach internal networks.
+- `lib/pagespeed.ts` calls the Google API and returns the four scores.
+- `app/api/analyze/route.ts` connects everything and talks to the database.
+- `prisma/schema.prisma` defines two tables: `Site` and `Audit` (one site has many audits).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### API
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`POST /api/analyze`
 
-## Learn More
+```json
+{ "url": "example.com", "strategy": "mobile" }
+```
 
-To learn more about Next.js, take a look at the following resources:
+`strategy` is optional (`"mobile"` by default, or `"desktop"`). Response:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+{
+  "siteId": "…",
+  "auditId": "…",
+  "url": "https://example.com",
+  "strategy": "mobile",
+  "cached": false,
+  "scores": { "performance": 100, "accessibility": 96, "seo": 80, "bestPractices": 100 }
+}
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Errors return `{ "error": "…" }` with status `400` (invalid input) or `502` (Google could not analyze the site).
 
-## Deploy on Vercel
+## Run locally
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+You need Node.js, a PostgreSQL database (for example a free one on [Neon](https://neon.tech)) and a free [PageSpeed Insights API key](https://developers.google.com/speed/docs/insights/v5/get-started).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+git clone https://github.com/flaviaonorato00-lab/sitescope.git
+cd sitescope
+npm install
+```
+
+Create a `.env` file:
+
+```
+DATABASE_URL=your-postgres-connection-string
+PAGESPEED_API_KEY=your-google-api-key
+```
+
+Create the tables and start the app:
+
+```bash
+npx prisma migrate deploy
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Tests
+
+```bash
+npm test
+```
+
+The URL validation and normalization (`lib/url.ts`) is covered by unit tests.
+
+## Ideas for improvement
+
+- Rate limiting per IP
+- Scheduled re-analysis of saved sites, to show trends over time
+- Tests for the API route and an end-to-end test of the form
