@@ -4,8 +4,6 @@ Check the performance, accessibility, SEO and best practices of any public websi
 
 **Live demo:** [sitescope-zeta.vercel.app](https://sitescope-zeta.vercel.app)
 
-![SiteScope screenshot](docs/screenshot.png)
-
 ## Features
 
 - Analyze any public website on **mobile** or **desktop** using the Google PageSpeed Insights API
