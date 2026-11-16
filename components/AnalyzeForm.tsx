@@ -43,6 +43,7 @@ export default function AnalyzeForm() {
         setError(data.error);
       } else {
         setResult(data);
+        setUrl("");
       }
     } catch {
       setError("Something went wrong. Please try again.");
